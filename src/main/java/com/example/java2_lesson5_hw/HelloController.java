@@ -16,6 +16,16 @@ public class HelloController {
     @FXML
     private TextArea namesField;
 
+
+    @FXML
+    private MenuItem closeField;
+
+    @FXML
+    private MenuItem clearChatArea;
+
+    @FXML
+    private MenuItem aboutButton;
+
     @FXML
     public void sendMessage() {
         String message = messageField.getText().trim();
