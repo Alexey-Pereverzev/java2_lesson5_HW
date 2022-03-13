@@ -60,7 +60,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.example.java2_lesson5_hw/com.example.java2_lesson5_hw.HelloApplication
+                            <mainClass>com.example.java2_lesson5_hw/com.example.java2_lesson5_hw.ClientChatApplication
                             </mainClass>
                         </configuration>
                     </execution>
