@@ -1,13 +1,6 @@
 package com.example.java2_lesson5_hw.controllers;
 
-import java.net.URL;
-import java.util.ResourceBundle;
-
 import com.example.java2_lesson5_hw.models.Network;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
@@ -54,8 +47,8 @@ public class ClientController {
         }
     }
 
-    @FXML
-    public void checkEnter(KeyEvent e) {
+   @FXML
+   public void checkEnter(KeyEvent e) {
         if (e.getCode() == KeyCode.ENTER) {
             sendMessage();
         }
