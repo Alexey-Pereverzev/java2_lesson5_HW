@@ -1,6 +1,7 @@
 module com.example.java2_lesson5_hw {
     requires javafx.controls;
     requires javafx.fxml;
+    requires lombok;
 
 
     opens com.example.java2_lesson5_hw to javafx.fxml;

@@ -34,8 +34,8 @@ public class ClientController {
     public void sendMessage() {
         String message = messageField.getText().trim();
         if (message.length()!=0) {
-            network.sendMessage("Я: " + message);
-//            appendMessage(message);
+            network.sendMessage(message);
+            appendMessage(message);
         }
         messageField.setText("");
     }
@@ -47,8 +47,8 @@ public class ClientController {
         }
     }
 
-   @FXML
-   public void checkEnter(KeyEvent e) {
+    @FXML
+    public void checkEnter(KeyEvent e) {
         if (e.getCode() == KeyCode.ENTER) {
             sendMessage();
         }
@@ -69,7 +69,11 @@ public class ClientController {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("About");
         alert.setHeaderText(null);
-        alert.setContentText("Добро пожаловать в приложение Alex Chat!\n" + "Версия 1.0\n" + "Дата релиза 23.02.2022\n" + "Автор: Переверзев Алексей");
+        alert.setContentText("""
+                Добро пожаловать в приложение Alex Chat!
+                Версия 1.2
+                Дата релиза 17.03.2022
+                Автор: Переверзев Алексей""");
         alert.showAndWait();
     }
 
