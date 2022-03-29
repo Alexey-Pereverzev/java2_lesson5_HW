@@ -1,14 +1,15 @@
-package lesson_07_server.server;
+package com.example.java2_lesson5_hw.server;
 
-import lesson_07_server.server.authentication.AuthenticationService;
-import lesson_07_server.server.authentication.BaseAuthenticationService;
-import lesson_07_server.server.handler.ClientHandler;
+import com.example.java2_lesson5_hw.server.authentication.AuthenticationService;
+import com.example.java2_lesson5_hw.server.authentication.BaseAuthenticationService;
+import com.example.java2_lesson5_hw.server.handler.ClientHandler;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class MyServer {
     private final ServerSocket serverSocket;
@@ -21,9 +22,6 @@ public class MyServer {
         clients = new ArrayList<>();
     }
 
-    public AuthenticationService getAuthenticationService() {
-        return authenticationService;
-    }
 
     public void start() {
         System.out.println("СЕРВЕР ЗАПУЩЕН!");
@@ -54,7 +52,13 @@ public class MyServer {
         clients.add(clientHandler);
     }
 
-    public synchronized void unSubscribe(ClientHandler clientHandler) {
+    public synchronized void unSubscribe(ClientHandler clientHandler) throws IOException {
+        ClientHandler handler = clientHandler;
+        clients.remove(clientHandler);
+        handler.handle();
+    }
+
+    public synchronized void unSubscribeAndTerminate(ClientHandler clientHandler) {
         clients.remove(clientHandler);
     }
 
@@ -67,19 +71,47 @@ public class MyServer {
         return false;
     }
 
-    public synchronized void broadcastMessage(String message, ClientHandler sender) throws IOException {
+    public AuthenticationService getAuthenticationService() {
+        return authenticationService;
+    }
+
+    public synchronized void broadcastMessage(String message, ClientHandler sender, boolean isServerMessage) throws IOException {
         for (ClientHandler client : clients) {
             if (!client.equals(sender)) {
-                client.sendMessage(sender.getUsername(),message);
+                client.sendMessage(isServerMessage ? null : sender.getUsername(), message);
             }
         }
     }
 
-    public void sendPrivateMsg(String privateMsg, String addressee, String sender) throws IOException {
+    public synchronized void broadcastMessage(String message, ClientHandler sender) throws IOException {
+        broadcastMessage(message, sender, false);
+    }
+
+    public synchronized void broadcastAddedUser(ClientHandler sender) throws IOException {
         for (ClientHandler client : clients) {
-            if (client.getUsername().equals(addressee)) {
+            if (!client.equals(sender)) {
+                client.sendAddUserMessage(sender.getUsername());
+            }
+        }
+    }
+
+    public synchronized void broadcastDeletedUser(ClientHandler sender) throws IOException {
+        for (ClientHandler client : clients) {
+            if (!client.equals(sender)) {
+                client.sendDeleteUserMessage(sender.getUsername());
+            }
+        }
+    }
+
+    public synchronized void sendPrivateMsg(String privateMsg, String sender, String recipient) throws IOException {
+        for (ClientHandler client : clients) {
+            if (client.getUsername().equals(recipient)) {
                 client.sendPrivateMessage(sender, privateMsg);
             }
         }
+    }
+
+    public List<ClientHandler> getClients() {
+        return clients;
     }
 }

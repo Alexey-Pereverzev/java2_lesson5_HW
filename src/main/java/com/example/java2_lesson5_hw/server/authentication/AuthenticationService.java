@@ -1,4 +1,4 @@
-package lesson_07_server.server.authentication;
+package com.example.java2_lesson5_hw.server.authentication;
 
 public interface AuthenticationService {
 

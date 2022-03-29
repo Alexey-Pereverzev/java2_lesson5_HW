@@ -1,11 +1,12 @@
-package lesson_07_server;
+package com.example.java2_lesson5_hw;
 
-import lesson_07_server.server.MyServer;
+import com.example.java2_lesson5_hw.server.MyServer;
 
 import java.io.IOException;
 
 public class ServerApp {
     private static final int DEFAULT_PORT = 8186;
+
     public static void main(String[] args) {
         try {
             new MyServer(DEFAULT_PORT).start();

@@ -1,11 +1,17 @@
 package com.example.java2_lesson5_hw.controllers;
 
+import com.example.java2_lesson5_hw.ClientChatApplication;
 import com.example.java2_lesson5_hw.models.Network;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 
+import java.io.IOException;
+import java.text.DateFormat;
+import java.util.Date;
 
 public class ClientController {
 
@@ -31,20 +37,83 @@ public class ClientController {
     private MenuItem aboutButton;
 
     @FXML
+    private Label usernameTitle;
+
+    @FXML
+    private Button sendButton;
+
+    private String selectedRecipient;
+
+    private Network network;
+
+    public ListView<String> getNamesField() {
+        return namesField;
+    }
+
+    private ClientChatApplication clientChatApplication;
+
+    @FXML
+    void initialize() {
+        namesField.setItems(FXCollections.observableArrayList());
+        sendButton.setOnAction(event -> sendMessage());
+        messageField.setOnAction(event -> sendMessage());
+        namesField.setCellFactory(lv -> {
+            MultipleSelectionModel<String> selectionModel = namesField.getSelectionModel();
+            ListCell<String> cell = new ListCell<>();
+            cell.textProperty().bind(cell.itemProperty());
+            cell.addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
+                namesField.requestFocus();
+                if (!cell.isEmpty()) {
+                    int index = cell.getIndex();
+                    if (selectionModel.getSelectedIndices().contains(index)) {
+                        selectionModel.clearSelection(index);
+                        selectedRecipient = null;
+                    } else {
+                        selectionModel.select(index);
+                        selectedRecipient = cell.getItem();
+                    }
+                    event.consume();
+                }
+            });
+            return cell;
+        });
+    }
+
+    public void setNetwork(Network network) {
+        this.network = network;
+    }
+
+    @FXML
     public void sendMessage() {
         String message = messageField.getText().trim();
-        if (message.length()!=0) {
-            network.sendMessage(message);
-            appendMessage(message);
-        }
         messageField.setText("");
+        if (message.length() != 0) {
+            if (message.startsWith("/end")) {
+                network.sendMessage(message);
+                try {
+                    clientChatApplication.authAndChat();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                if (selectedRecipient != null) {
+                    network.sendPrivateMessage(selectedRecipient, message);
+                    appendMessage("Я: (" + selectedRecipient + ") " + message);
+                } else {
+                    network.sendMessage(message);
+                    appendMessage("Я: " + message);
+                }
+            }
+        }
     }
 
     public void appendMessage(String message) {
-        if (message.length()!=0) {
-            messagesList.appendText(message);
-            messagesList.appendText(System.lineSeparator());
-        }
+        String timeStamp = DateFormat.getInstance().format(new Date());
+        messagesList.appendText(timeStamp);
+        messagesList.appendText(System.lineSeparator());
+        messagesList.appendText(message);
+        messagesList.appendText(System.lineSeparator());
+        messagesList.appendText(System.lineSeparator());
     }
 
     @FXML
@@ -56,6 +125,7 @@ public class ClientController {
 
     @FXML
     void closeApp() {
+        network.sendMessage(Network.CLOSE_CLIENT_CMD_PREFIX);
         System.exit(0);
     }
 
@@ -71,25 +141,27 @@ public class ClientController {
         alert.setHeaderText(null);
         alert.setContentText("""
                 Добро пожаловать в приложение Alex Chat!
-                Версия 1.2
-                Дата релиза 17.03.2022
+                Версия 1.3
+                Дата релиза 29.03.2022
                 Автор: Переверзев Алексей""");
         alert.showAndWait();
     }
 
-    @FXML
-    void initialize() {
-        namesField.getItems().add("Диана");
-        namesField.getItems().add("Тимофей");
-        namesField.getItems().add("Андрей");
-        namesField.getItems().add("Дмитрий");
-        namesField.getItems().add("Арман");
-        userName.setText("Диана");
+
+    public void appendServerMessage(String serverMessage) {
+        messagesList.appendText(serverMessage);
+        messagesList.appendText(System.lineSeparator());
+        messagesList.appendText(System.lineSeparator());
     }
 
-    private Network network;
 
-    public void setNetwork(Network network) {
-        this.network = network;
+    public void setUsernameTitle(String username) {
+        this.usernameTitle.setText(username);
     }
+
+
+    public void setChatApplication(ClientChatApplication clientChatApplication) {
+        this.clientChatApplication = clientChatApplication;
+    }
+
 }

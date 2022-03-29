@@ -1,15 +1,17 @@
-package lesson_07_server.server.authentication;
+package com.example.java2_lesson5_hw.server.authentication;
 
-import lesson_07_server.server.models.User;
+import com.example.java2_lesson5_hw.server.models.User;
 
 import java.util.List;
 
 public class BaseAuthenticationService implements AuthenticationService {
 
     private static final List<User> clients = List.of(
-            new User("martin", "1111", "Martin_Cat"),
-            new User("batman", "2222", "Брюс_Уэйн"),
-            new User("gena", "3333", "Гэндальф_Серый")
+            new User("user1", "1111", "Диана"),
+            new User("user2", "2222", "Тимофей"),
+            new User("user3", "3333", "Андрей"),
+            new User("user4", "4444", "Дмитрий"),
+            new User("user5", "5555", "Арман")
     );
 
     @Override

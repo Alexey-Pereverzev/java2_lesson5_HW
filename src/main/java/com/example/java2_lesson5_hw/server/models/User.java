@@ -1,4 +1,4 @@
-package lesson_07_server.server.models;
+package com.example.java2_lesson5_hw.server.models;
 
 import lombok.Data;
 
