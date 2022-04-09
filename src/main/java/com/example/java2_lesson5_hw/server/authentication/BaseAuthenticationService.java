@@ -33,4 +33,20 @@ public class BaseAuthenticationService implements AuthenticationService {
     public void endAuthentication() {
         System.out.println("Конец аутентификации");
     }
+
+    @Override
+    public void changeNik(String login, String newName) {
+    }
+
+    @Override
+    public boolean isUsernameFree(String username) {
+        boolean result = true;
+        for (User client : clients) {
+            if (client.getUsername().equals(username)) {
+                result = false;
+                break;
+            }
+        }
+        return result;
+    }
 }

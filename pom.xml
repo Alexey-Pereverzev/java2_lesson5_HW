@@ -43,6 +43,12 @@
             <artifactId>lombok</artifactId>
             <version>1.18.22</version>
         </dependency>
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.36.0.3</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -65,8 +71,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.example.java2_lesson5_hw/com.example.java2_lesson5_hw.ClientChatApplication
-                            </mainClass>
+                            <mainClass>com.example.java2_lesson5_hw/com.example.java2_lesson5_hw.ClientChatApplication</mainClass>
                         </configuration>
                     </execution>
                 </executions>

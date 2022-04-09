@@ -3,6 +3,7 @@ module com.example.java2_lesson5_hw {
     requires javafx.fxml;
     requires java.datatransfer;
     requires lombok;
+    requires java.sql;
 
 
     opens com.example.java2_lesson5_hw to javafx.fxml;

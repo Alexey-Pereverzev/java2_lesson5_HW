@@ -1,12 +1,12 @@
 package com.example.java2_lesson5_hw.server;
 
-import com.example.java2_lesson5_hw.server.authentication.AuthenticationService;
-import com.example.java2_lesson5_hw.server.authentication.BaseAuthenticationService;
+import com.example.java2_lesson5_hw.server.authentication.*;
 import com.example.java2_lesson5_hw.server.handler.ClientHandler;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +18,12 @@ public class MyServer {
 
     public MyServer(int port) throws IOException {
         serverSocket = new ServerSocket(port);
-        authenticationService = new BaseAuthenticationService();
+        authenticationService = new DBAuthenticationService();
+        try {
+            authenticationService.startAuthentication();
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+        }
         clients = new ArrayList<>();
     }
 
@@ -113,5 +118,11 @@ public class MyServer {
 
     public List<ClientHandler> getClients() {
         return clients;
+    }
+
+    public void broadcastRefreshUsers(String allUsers, String oldName, String newName) throws IOException {
+        for (ClientHandler client : clients) {
+            client.sendRefreshUsers(allUsers, oldName, newName);
+        }
     }
 }

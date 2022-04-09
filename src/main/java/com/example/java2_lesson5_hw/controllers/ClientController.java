@@ -141,12 +141,11 @@ public class ClientController {
         alert.setHeaderText(null);
         alert.setContentText("""
                 Добро пожаловать в приложение Alex Chat!
-                Версия 1.3
-                Дата релиза 29.03.2022
+                Версия 1.4
+                Дата релиза 09.04.2022
                 Автор: Переверзев Алексей""");
         alert.showAndWait();
     }
-
 
     public void appendServerMessage(String serverMessage) {
         messagesList.appendText(serverMessage);
@@ -164,4 +163,7 @@ public class ClientController {
         this.clientChatApplication = clientChatApplication;
     }
 
+    public ClientChatApplication getClientChatApplication() {
+        return clientChatApplication;
+    }
 }

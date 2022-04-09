@@ -4,7 +4,6 @@ import com.example.java2_lesson5_hw.controllers.AuthController;
 import com.example.java2_lesson5_hw.controllers.ClientController;
 import com.example.java2_lesson5_hw.models.Network;
 import javafx.application.Application;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -14,8 +13,6 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.List;
-
-
 
 public class ClientChatApplication extends Application {
 
@@ -66,12 +63,9 @@ public class ClientChatApplication extends Application {
         clientController = fxmlLoader.getController();
         clientController.setNetwork(network);
         clientController.setChatApplication(this);
-        primaryStage.setOnCloseRequest(new EventHandler() {
-            @Override
-            public void handle(Event event) {
-                network.sendMessage(Network.CLOSE_CLIENT_CMD_PREFIX);
-                System.exit(0);
-            }
+        primaryStage.setOnCloseRequest((EventHandler) event -> {
+            network.sendMessage(Network.CLOSE_CLIENT_CMD_PREFIX);
+            System.exit(0);
         });
     }
 
@@ -82,11 +76,11 @@ public class ClientChatApplication extends Application {
     public void openChatDialogue() throws IOException, InterruptedException {
         authStage.close();
         primaryStage.show();
-        primaryStage.setTitle("Alex Chat 1.3 - " + network.getUsername());
+        primaryStage.setTitle("Alex Chat 1.4 - " + network.getUsername());
         network.waitMessage(clientController);
-        network.sendUserListRequest();                              //!!!!!!!
+        network.sendUserListRequest();
         Thread.sleep(100);
-        clientController.setUsernameTitle(network.getUsername());   //!!!!!!!!
+        clientController.setUsernameTitle(network.getUsername());
         List<String> usersOnline = network.getUsersOnline();
         for (String s : usersOnline) {
             if (s.equals(network.getUsername())) {
@@ -104,4 +98,7 @@ public class ClientChatApplication extends Application {
         alert.show();
     }
 
+    public Stage getPrimaryStage() {
+        return primaryStage;
+    }
 }
