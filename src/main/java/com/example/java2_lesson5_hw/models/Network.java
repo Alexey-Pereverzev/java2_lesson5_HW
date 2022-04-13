@@ -8,8 +8,10 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 
@@ -74,11 +76,24 @@ public class Network {
                             String[] parts = message.split("\\s+", 3);
                             String sender = parts[1];
                             String clientMessage = parts[2];
-                            Platform.runLater(() -> clientController.appendMessage(String.format("%s: %s", sender, clientMessage)));
+                            Platform.runLater(() -> {
+                                clientController.appendMessage(String.format("%s: %s", sender, clientMessage));
+                                String timeStamp = DateFormat.getInstance().format(new Date());
+                                clientController.appendToChatHistory(timeStamp,sender.concat(": ").concat(clientMessage));
+                            });
                         } else if (message.startsWith(SERVER_MSG_PREFIX)) {
                             String[] parts = message.split("\\s+", 2);
                             String serverMessage = parts[1];
-                            Platform.runLater(() -> clientController.appendServerMessage(serverMessage));
+                            Platform.runLater(() -> {
+                                clientController.appendServerMessage(serverMessage);
+                                String timeStamp = DateFormat.getInstance().format(new Date());
+                                clientController.appendToChatHistory(timeStamp, serverMessage);
+                                try {
+                                    clientController.writeHistory();
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                            });
                         } else if (message.startsWith(CLIENT_REMOVE_PREFIX)) {
                             String userDeleted = message.split("\\s+", 2)[1];
                             if (!username.equals(userDeleted)) {
