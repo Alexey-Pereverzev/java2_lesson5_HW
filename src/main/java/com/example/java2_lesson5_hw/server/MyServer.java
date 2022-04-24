@@ -2,6 +2,8 @@ package com.example.java2_lesson5_hw.server;
 
 import com.example.java2_lesson5_hw.server.authentication.*;
 import com.example.java2_lesson5_hw.server.handler.ClientHandler;
+import org.apache.log4j.Logger;
+import org.apache.log4j.PropertyConfigurator;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -19,6 +21,8 @@ public class MyServer {
     public MyServer(int port) throws IOException {
         serverSocket = new ServerSocket(port);
         authenticationService = new DBAuthenticationService();
+        PropertyConfigurator.configure("src/main/resources/log/configs/log4j.properties");
+
         try {
             authenticationService.startAuthentication();
         } catch (ClassNotFoundException | SQLException e) {
@@ -28,39 +32,44 @@ public class MyServer {
     }
 
 
-    public void start() {
+    public void start() throws IOException {
+        Logger file = Logger.getLogger("file");
+
         System.out.println("СЕРВЕР ЗАПУЩЕН!");
         System.out.println("---------------");
 
+        file.info("Сервер запущен");
+
         try {
             while (true) {
-                waitAndProcessNewClientConnection();
+                waitAndProcessNewClientConnection(file);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void waitAndProcessNewClientConnection() throws IOException {
+    private void waitAndProcessNewClientConnection(Logger file) throws IOException {
         System.out.println("Ожидание подключения...");
         Socket socket = serverSocket.accept();
         System.out.println("Клиент подключился");
-        processClientConnection(socket);
+        file.info("Клиент подключился");
+        processClientConnection(socket, file);
     }
 
-    private void processClientConnection(Socket socket) throws IOException {
+    private void processClientConnection(Socket socket, Logger file) throws IOException {
         ClientHandler handler = new ClientHandler(this, socket);
-        handler.handle();
+        handler.handle(file);
     }
 
     public synchronized void subscribe(ClientHandler clientHandler) {
         clients.add(clientHandler);
     }
 
-    public synchronized void unSubscribe(ClientHandler clientHandler) throws IOException {
+    public synchronized void unSubscribe(ClientHandler clientHandler, Logger file) throws IOException {
         ClientHandler handler = clientHandler;
         clients.remove(clientHandler);
-        handler.handle();
+        handler.handle(file);
     }
 
     public synchronized void unSubscribeAndTerminate(ClientHandler clientHandler) {
@@ -83,7 +92,11 @@ public class MyServer {
     public synchronized void broadcastMessage(String message, ClientHandler sender, boolean isServerMessage) throws IOException {
         for (ClientHandler client : clients) {
             if (!client.equals(sender)) {
-                client.sendMessage(isServerMessage ? null : sender.getUsername(), message);
+                if (isServerMessage) {
+                    client.sendMessage(null, message);
+                } else {
+                    client.sendMessage(sender.getUsername(), message);
+                }
             }
         }
     }

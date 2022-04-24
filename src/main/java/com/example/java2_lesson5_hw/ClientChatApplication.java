@@ -76,7 +76,7 @@ public class ClientChatApplication extends Application {
     public void openChatDialogue() throws IOException, InterruptedException {
         authStage.close();
         primaryStage.show();
-        primaryStage.setTitle("Alex Chat 1.5 - " + network.getUsername());
+        primaryStage.setTitle("Alex Chat 1.6 - " + network.getUsername());
         network.waitMessage(clientController);
         network.sendUserListRequest();
         Thread.sleep(100);

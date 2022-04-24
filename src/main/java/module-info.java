@@ -4,6 +4,7 @@ module com.example.java2_lesson5_hw {
     requires java.datatransfer;
     requires lombok;
     requires java.sql;
+    requires log4j;
 
 
     opens com.example.java2_lesson5_hw to javafx.fxml;

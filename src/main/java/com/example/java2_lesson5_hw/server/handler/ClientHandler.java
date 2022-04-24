@@ -2,6 +2,7 @@ package com.example.java2_lesson5_hw.server.handler;
 
 import com.example.java2_lesson5_hw.server.MyServer;
 import com.example.java2_lesson5_hw.server.authentication.AuthenticationService;
+import org.apache.log4j.Logger;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -43,15 +44,15 @@ public class ClientHandler {
         in = new DataInputStream(clientSocket.getInputStream());
     }
 
-    public void handle() {
+    public void handle(Logger file) {
         new Thread(() -> {
             try {
-                authentication();
-                chatWithOthers();
+                authentication(file);
+                chatWithOthers(file);
             } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
                 try {
-                    myServer.unSubscribe(this);
+                    myServer.unSubscribe(this, file);
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -64,28 +65,31 @@ public class ClientHandler {
         }).start();
     }
 
-    private void authentication() throws IOException, InterruptedException {
+    private void authentication(Logger file) throws IOException, InterruptedException {
         String message;
         while (true) {
             message = in.readUTF();
             if (message.startsWith(AUTH_CMD_PREFIX)) {
-                boolean successAuth = processAuthentication(message);
+                boolean successAuth = processAuthentication(message, file);
                 if (successAuth) {
                     break;
                 } else {
                     System.out.println("Неудачная попытка аутентификации");
+                    file.warn("Неудачная попытка аутентификации");
                 }
             } else {
                 out.writeUTF(AUTH_ERR_PREFIX + " Неверная команда для аутентификации");
                 System.out.println("Неудачная попытка аутентификации");
+                file.warn("Неудачная попытка аутентификации — Неверная команда для аутентификации");
             }
         }
     }
 
-    private boolean processAuthentication(String message) throws IOException {
+    private boolean processAuthentication(String message, Logger file) throws IOException {
         String[] parts = message.split("\\s+");
         if (parts.length != 3) {
             out.writeUTF(AUTH_ERR_PREFIX + " Неверный формат строки аутентификации");
+            file.warn("Ошибка: неверный формат строки аутентификации");
             return false;
         } else {
             login = parts[1];
@@ -95,10 +99,12 @@ public class ClientHandler {
                 username = auth.getUsernameByLoginAndPassword(login, password);
             } catch (SQLException e) {
                 e.printStackTrace();
+                file.error("Произошла ошибка: " + e.getMessage());
             }
             if (username != null) {
                 if (myServer.isUserOnline(username)) {
                     out.writeUTF(AUTH_ERR_PREFIX + " Данный пользователь уже онлайн");
+                    file.warn("Ошибка: данный пользователь уже онлайн");
                     return false;
                 }
                 out.writeUTF(AUTH_OK_PREFIX + " " + username);
@@ -106,16 +112,18 @@ public class ClientHandler {
                 myServer.subscribe(this);
                 myServer.broadcastAddedUser(this);
                 System.out.println("Пользователь " + username + " подключился к чату");
+                file.info("Пользователь " + username + " подключился к чату");
                 myServer.broadcastMessage(String.format(">>> %s присоединился к чату", username), this, true);
                 return true;
             } else {
                 out.writeUTF(AUTH_ERR_PREFIX + " Неверный логин и/или пароль");
+                file.warn("Ошибка: Неверный логин и/или пароль");
                 return false;
             }
         }
     }
 
-    private void chatWithOthers() throws IOException, InterruptedException {
+    private void chatWithOthers(Logger file) throws IOException, InterruptedException {
         String message;
         while (true) {
             message = in.readUTF();
@@ -126,30 +134,37 @@ public class ClientHandler {
                         myServer.getAuthenticationService().endAuthentication();
                     } catch (SQLException e) {
                         e.printStackTrace();
+                        file.error("Произошла ошибка: " + e.getMessage());
                     }
+                    file.info("Сервер остановлен");
                     System.exit(0);
                 } else if (message.startsWith(END_CLIENT_CMD_PREFIX)) {
                     out.writeUTF(CLIENT_REMOVE_PREFIX + " " + username);
                     myServer.broadcastMessage(username + " отключился от чата", this, true);
                     System.out.println(username + " отключился от чата");
+                    file.info(username + " отключился от чата");
                     myServer.broadcastDeletedUser(this);
-                    myServer.unSubscribe(this);
+                    myServer.unSubscribe(this, file);
                     return;
                 } else if (message.startsWith(PRIVATE_MSG_PREFIX)) {
                     String[] parts = message.split("\\s+", 3);
                     String recipient = parts[1];
                     String privateMessage = parts[2];
                     myServer.sendPrivateMsg(privateMessage, username, recipient);
+                    file.info(username + " отправил приватное сообщение пользователю " + recipient + ": " + privateMessage);
                 } else if (message.startsWith(USER_LIST_REQUEST)) {
                     List<ClientHandler> clients = myServer.getClients();
-                    String users_answer = USER_LIST_ANSWER;
+                    String users_answer = "";
                     for (ClientHandler client : clients) {
                         users_answer = users_answer.concat(" " + client.getUsername());
                     }
+                    file.info("Получен список активных пользователей:" + users_answer);
+                    users_answer = USER_LIST_ANSWER.concat(users_answer);
                     out.writeUTF(users_answer);
                 } else if (message.startsWith(CLOSE_CLIENT_CMD_PREFIX)) {
                     myServer.broadcastMessage(username + " отключился от чата", this, true);
                     System.out.println(username + " отключился от чата");
+                    file.info(username + " отключился от чата");
                     myServer.broadcastDeletedUser(this);
                     myServer.unSubscribeAndTerminate(this);
                     return;
@@ -175,16 +190,19 @@ public class ClientHandler {
                                     allUsers = allUsers.substring(1);
                                 }
                                 myServer.broadcastRefreshUsers(allUsers, oldName, newName);
-
+                                file.info("Смена ника " + oldName + " на " + newName);
                             } catch (SQLException e) {
                                 e.printStackTrace();
+                                file.error("Произошла ошибка: " + e.getMessage());
                             }
                         }
                     } catch (SQLException e) {
                         e.printStackTrace();
+                        file.error("Произошла ошибка: " + e.getMessage());
                     }
                 } else {
                     myServer.broadcastMessage(message, this);
+                    file.info(username + " отправил сообщение: " + message);
                 }
             }
         }
